@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EV Journey">
+<title>EV Journey Cost</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a33;
+    --accent: #00e5a0;
+    --accent2: #7b5ea7;
+    --text: #f0f0f4;
+    --muted: #888899;
+    --warn: #ff6b4a;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
+    padding-top: max(env(safe-area-inset-top), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom), 30px);
+  }
+
+  .container {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  header {
+    padding: 24px 0 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+  }
+
+  .bolt {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(0,229,160,0.35);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  h1 span {
+    display: block;
+    color: var(--accent);
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+
+  .field label .unit {
+    font-size: 11px;
+    color: var(--border);
+    background: var(--surface2);
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .input-row:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.08);
+  }
+
+  .input-row input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    padding: 12px 14px;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  /* slider styling */
+  .slider-wrap {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px 12px;
+    position: relative;
+  }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .slider-val {
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .slider-pct {
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(0,229,160,0.1);
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,229,160,0.5);
+    border: 2px solid var(--bg);
+  }
+
+  /* Results */
+  .results-card {
+    background: linear-gradient(135deg, #12201c 0%, #161620 100%);
+    border: 1.5px solid rgba(0,229,160,0.25);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(0,229,160,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .result-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .result-row:first-child { padding-top: 0; }
+
+  .result-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    flex: 1;
+  }
+
+  .result-val {
+    font-size: 20px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .result-val.big {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .result-val.warn { color: var(--warn); }
+  .result-val.ok { color: var(--accent); }
+  .result-val.neutral { color: var(--text); }
+
+  /* Charge bar */
+  .charge-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .bar-track {
+    height: 12px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s;
+    position: relative;
+  }
+
+  .bar-needed {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(255,107,74,0.35);
+    border-right: 2px dashed var(--warn);
+    transition: left 0.4s, width 0.4s;
+  }
+
+  /* charge needed indicator */
+  .need-msg {
+    font-size: 11px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+    padding-top: 10px;
+    letter-spacing: 0.08em;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="bolt">⚡</div>
+    <h1>
+      <span>EV Journey</span>
+      Cost Calculator
+    </h1>
+  </header>
+
+  <!-- Journey Inputs -->
+  <p class="section-label">Journey</p>
+  <div class="card">
+    <div class="field">
+      <label>Miles to travel <span class="unit">miles</span></label>
+      <div class="input-row">
+        <input type="number" id="miles" value="50" min="0" step="1" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label>Efficiency <span class="unit">miles / kWh</span></label>
+      <div class="input-row">
+        <input type="number" id="efficiency" value="3" min="0.1" step="0.1" inputmode="decimal">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tariff & Battery -->
+  <p class="section-label">Tariff & Battery</p>
+  <div class="card">
+    <div class="field">
+      <label>Charge cost <span class="unit">£ / kWh</span></label>
+      <div class="input-row">
+        <input type="number" id="costPerKwh" value="0.35" min="0" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label>Battery capacity <span class="unit">kWh</span></label>
+      <div class="input-row">
+        <input type="number" id="maxCharge" value="78" min="1" step="1" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field">
+      <label>Charge power <span class="unit">kW</span></label>
+      <div class="input-row">
+        <input type="number" id="chargePower" value="2" min="0.1" step="0.1" inputmode="decimal">
+      </div>
+    </div>
+  </div>
+
+  <!-- Current charge slider -->
+  <p class="section-label">Current Charge</p>
+  <div class="card">
+    <div class="field" style="margin-bottom:0">
+      <div class="slider-wrap">
+        <div class="slider-top">
+          <span class="slider-val" id="sliderDisplay">85%</span>
+          <span class="slider-pct" id="sliderKwh">66.3 kWh</span>
+        </div>
+        <input type="range" id="currentCharge" min="0" max="100" value="85" step="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Charge visual -->
+  <div class="charge-visual">
+    <div class="bar-label">
+      <span>Battery</span>
+      <span id="barCapLabel">0 / 78 kWh</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="barFill"></div>
+      <div class="bar-needed" id="barNeeded"></div>
+    </div>
+    <div class="need-msg" id="needMsg"></div>
+  </div>
+
+  <!-- Results -->
+  <p class="section-label">Results</p>
+  <div class="results-card">
+    <div class="result-row">
+      <span class="result-label">Fuel cost of journey</span>
+      <span class="result-val big" id="resFuelCost">—</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Charge needed</span>
+      <span class="result-val neutral" id="resChargeNeeded">—</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Charge needed (%)</span>
+      <span class="result-val neutral" id="resChargePct">—</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Charge cost (top-up only)</span>
+      <span class="result-val neutral" id="resChargeCost">—</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Charge time needed</span>
+      <span class="result-val neutral" id="resChargeTime">—</span>
+    </div>
+  </div>
+
+  <footer>OFFLINE · SAVES TO HOME SCREEN</footer>
+</div>
+
+<script>
+function $(id) { return document.getElementById(id); }
+
+function fmt(n, decimals=2) {
+  if (!isFinite(n)) return '—';
+  return n.toFixed(decimals);
+}
+
+function fmtTime(hours) {
+  if (!isFinite(hours) || hours <= 0) return 'No charge needed ✓';
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+function calculate() {
+  const miles        = parseFloat($('miles').value) || 0;
+  const efficiency   = parseFloat($('efficiency').value) || 1;
+  const costPerKwh   = parseFloat($('costPerKwh').value) || 0;
+  const maxCharge    = parseFloat($('maxCharge').value) || 1;
+  const chargePower  = parseFloat($('chargePower').value) || 1;
+  const currentPct   = parseFloat($('currentCharge').value) / 100;
+
+  // Derived
+  const chargeNeeded   = miles / efficiency;           // kWh for journey
+  const currentKwh     = currentPct * maxCharge;
+  const fuelCost       = costPerKwh * chargeNeeded;
+  const topUpNeeded    = Math.max(0, chargeNeeded - currentKwh);
+  const topUpCost      = topUpNeeded * costPerKwh;
+  const chargeTimeH    = topUpNeeded / chargePower;
+  const chargeNeededPct = chargeNeeded / maxCharge * 100;
+
+  // Update slider displays
+  $('sliderDisplay').textContent = `${Math.round(currentPct * 100)}%`;
+  $('sliderKwh').textContent = `${fmt(currentKwh, 1)} kWh`;
+
+  // Results
+  $('resFuelCost').textContent  = `£${fmt(fuelCost)}`;
+  $('resChargeNeeded').textContent = `${fmt(chargeNeeded, 2)} kWh`;
+  $('resChargePct').textContent    = `${fmt(chargeNeededPct, 1)}%`;
+
+  if (topUpNeeded <= 0) {
+    $('resChargeCost').textContent = '£0.00 (enough charge)';
+    $('resChargeCost').className = 'result-val ok';
+    $('resChargeTime').textContent = 'No top-up needed ✓';
+    $('resChargeTime').className = 'result-val ok';
+  } else {
+    $('resChargeCost').textContent = `£${fmt(topUpCost)}`;
+    $('resChargeCost').className = 'result-val warn';
+    $('resChargeTime').textContent = fmtTime(chargeTimeH);
+    $('resChargeTime').className = 'result-val warn';
+  }
+
+  // Bar
+  const fillPct = Math.min(currentPct * 100, 100);
+  const fill = $('barFill');
+  fill.style.width = fillPct + '%';
+  const hue = fillPct > 50 ? 160 : fillPct > 20 ? 40 : 0;
+  fill.style.background = fillPct > 50 
+    ? 'linear-gradient(90deg, #00c47e, #00e5a0)' 
+    : fillPct > 20 
+    ? 'linear-gradient(90deg, #e5a000, #ffc940)' 
+    : 'linear-gradient(90deg, #c44000, #ff6b4a)';
+
+  $('barCapLabel').textContent = `${fmt(currentKwh, 1)} / ${fmt(maxCharge, 0)} kWh`;
+
+  // Needed overlay
+  const neededBar = $('barNeeded');
+  if (topUpNeeded > 0) {
+    const startFrac = currentPct;
+    const endFrac   = Math.min((currentKwh + topUpNeeded) / maxCharge, 1);
+    neededBar.style.left  = (startFrac * 100) + '%';
+    neededBar.style.width = ((endFrac - startFrac) * 100) + '%';
+    neededBar.style.display = 'block';
+  } else {
+    neededBar.style.display = 'none';
+  }
+
+  // Need message
+  const msg = $('needMsg');
+  if (topUpNeeded <= 0) {
+    msg.innerHTML = `<span class="dot" style="background:var(--accent)"></span> <span style="color:var(--accent)">Enough charge for this journey</span>`;
+  } else {
+    msg.innerHTML = `<span class="dot" style="background:var(--warn)"></span> <span style="color:var(--warn)">Need ${fmt(topUpNeeded, 2)} kWh more — <strong>${fmtTime(chargeTimeH)}</strong> at ${fmt(chargePower, 1)} kW</span>`;
+  }
+}
+
+// Listen to all inputs
+['miles','efficiency','costPerKwh','maxCharge','chargePower','currentCharge'].forEach(id => {
+  $(id).addEventListener('input', calculate);
+});
+
+calculate();
+
+// ── Service Worker for offline support ──────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'ev-calc-v1';
+    const ASSETS = [self.location.href];
+
+    self.addEventListener('install', e => {
+      e.waitUntil(
+        caches.open(CACHE).then(cache => cache.addAll(ASSETS))
+      );
+      self.skipWaiting();
+    });
+
+    self.addEventListener('activate', e => {
+      e.waitUntil(
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        )
+      );
+      self.clients.claim();
+    });
+
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+          return res;
+        }))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+</script>
+</body>
+</html>
